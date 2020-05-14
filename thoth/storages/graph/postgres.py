@@ -95,6 +95,7 @@ from .models import RPMPackageVersion
 from .models import RPMRequirement
 from .models import SoftwareEnvironment
 from .models import VersionedSymbol
+from .models import KebechetGithubAppInstalltions
 from .models import ALL_MAIN_MODELS
 
 from .models import Advised
@@ -3605,6 +3606,33 @@ class GraphDatabase(SQLBase):
         )
 
         return hardware_information, software_environment
+
+
+    def create_github_app_installation(self, session: Session, install_data: List[dict]) -> List[KebechetGithubAppInstalltions]:
+        """Create a record for new installation.
+        install_data =  [
+            {
+                "id": 236796147,
+                "node_id": "MDEwOlJlcG9zaXRvcnkyMzY3OTYxNDc=",
+                "name": "advisor",
+                "full_name": "thoth-station/advisor",
+                "private": false
+            }
+        ]
+        Accepts a list of installation details passed down by Github.
+        """
+        create_result = []
+        for repository in install_data:
+            add_repository = KebechetGithubAppInstalltions.get_or_create(
+                session,
+                slug = repository.get("slug"),
+                repo_name = repository.get("name"),
+                private = repository.get("private"),
+                installation_id = repository.get("id"),
+            )
+            create_result.append(add_repository)
+        return create_result
+        
 
     def create_python_package_version_entity(
         self,
